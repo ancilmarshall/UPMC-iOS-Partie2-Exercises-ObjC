@@ -10,6 +10,8 @@
 #import "ViewController.h"
 
 static const NSTimeInterval updateInterval = 0.01; //100 Hz
+static const CGFloat acc_deadband_threshold = 0.02;
+static const CGFloat acc_max = 1.0;
 
 @interface ViewController ()
 @property (nonatomic,strong) CMMotionManager* cmmanager;
@@ -34,10 +36,18 @@ static const NSTimeInterval updateInterval = 0.01; //100 Hz
                     NSLog(NSLocalizedString(@"Error in CMAcceleratorData update", nil));
                 }
                 else {
+                    
                     CGFloat acc_x = accelerometerData.acceleration.x;
                     CGFloat acc_y = accelerometerData.acceleration.y;
                     
                     CGFloat mag = sqrt( acc_x*acc_x + acc_y*acc_y);
+                    if ( mag < acc_deadband_threshold){
+                        mag = 0.0f;
+                    }
+                    else if ( mag > acc_max ){
+                        mag = acc_max;
+                    }
+                    
                     // Gravity angle is measured clockwise from +ve X-axis
                     CGFloat angle = atan2(-acc_y, acc_x);
                     
@@ -47,22 +57,28 @@ static const NSTimeInterval updateInterval = 0.01; //100 Hz
             }];
         }
         else {
-            NSLog(@"Acclerometer is not available");
+            NSLog(NSLocalizedString(@"Acclerometer is not available",nil));
         }
     } else {
         NSLog(NSLocalizedString(@"CMMotion Manager unable to be defined",nil));
     }
     
-    //add movable object
-    UIView* square = [[UIView alloc] initWithFrame:
-                      CGRectMake(100, 100, 100, 100)];
-    square.backgroundColor = [UIColor grayColor];
-    [self.view addSubview:square];
+    //add movable object, centered in the view
+    UIImageView* ball = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bille"]];
+    CGRect ballframe = ball.frame;
+    CGPoint ballcenter = [self.view center];
+    ballframe.origin.x =  ballcenter.x-ballframe.size.width/2;
+    ballframe.origin.y = ballcenter.y-ballframe.size.height/2;
+    ball.frame = ballframe;
+    [self.view addSubview:ball];
     
     //UI Kit Dynamics
     self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
-    self.gravity = [[UIGravityBehavior alloc] initWithItems:@[square]];
-    self.boundary = [[UICollisionBehavior alloc] initWithItems:@[square]];
+    self.gravity = [[UIGravityBehavior alloc] initWithItems:@[ball]];
+    self.gravity.magnitude = 0;
+    self.gravity.angle = 0;
+    
+    self.boundary = [[UICollisionBehavior alloc] initWithItems:@[ball]];
     self.boundary.translatesReferenceBoundsIntoBoundary = YES;
     
     [self.animator addBehavior:self.gravity];
@@ -70,5 +86,9 @@ static const NSTimeInterval updateInterval = 0.01; //100 Hz
     
 }
 
+-(BOOL)prefersStatusBarHidden;
+{
+    return YES;
+}
 
 @end
