@@ -16,6 +16,7 @@ static const CGFloat acc_deadband_threshold = 0.02;
 static const CGFloat acc_max = 1.0;
 static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 
+
 @interface ViewController () <UICollisionBehaviorDelegate, AVAudioPlayerDelegate>
 
 @property (nonatomic,strong) CMMotionManager* cmmanager;
@@ -27,6 +28,14 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 @property (nonatomic,strong) AVAudioPlayer* backgroundAudioPlayer;
 @property (nonatomic,strong) AVAudioPlayer* wallBumpAudioPlayer;
 @property (nonatomic,strong) AVAudioPlayer* starBumpAudioPlayer;
+@property (nonatomic,strong) NSTimer* timer;
+@property (nonatomic,assign) NSUInteger countdownTime;
+@property (weak, nonatomic) IBOutlet UILabel *countdownLabel;
+@property (nonatomic,assign) NSUInteger score;
+@property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
+@property (nonatomic,assign) dispatch_queue_t dispatchQueue;
+@property (nonatomic,strong) UIDynamicItemBehavior* itemBehavior;
+@property (weak, nonatomic) IBOutlet UIButton *startGameButton;
 @end
 
 @implementation ViewController
@@ -34,17 +43,13 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    //start background music on background queue
-    dispatch_queue_t dispatchQueue =
+    //initialize audio players background queue. Start background music
+    self.dispatchQueue =
     dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     
-    dispatch_async(dispatchQueue, ^(void){
+    dispatch_async(self.dispatchQueue, ^(void){
         
         self.backgroundAudioPlayer = [self audioPlayerWithSound:@"midnight-ride-01a"];
-        if ([self.backgroundAudioPlayer prepareToPlay]){
-            [self.backgroundAudioPlayer play];
-        }
-
         self.wallBumpAudioPlayer = [self audioPlayerWithSound:@"son"];
         self.starBumpAudioPlayer = [self audioPlayerWithSound:@"squeeze-toy-1"];
         
@@ -88,18 +93,20 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
         NSLog(NSLocalizedString(@"CMMotion Manager unable to be defined",nil));
     }
     
+    //background view
+    UIImageView* bg = [[UIImageView alloc] initWithFrame:self.view.frame];
+    bg.image = [UIImage imageNamed:@"rouletabille-fond-eau.jpg"];
+    [self.view addSubview:bg];
+    [self.view sendSubviewToBack:bg]; // to move behind labels in the IB storyboard
+    
     //add movable object, centered in the view
     self.ball = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bille"]];
-    CGRect ballframe = self.ball.frame;
-    CGPoint ballcenter = [self.view center];
-    ballframe.origin.x =  ballcenter.x-ballframe.size.width/2;
-    ballframe.origin.y = ballcenter.y-ballframe.size.height/2;
-    self.ball.frame = ballframe;
+    self.ball.hidden = YES;
     [self.view addSubview:self.ball];
     
     //add starfish target
     self.starfish = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"etoile-96"]];
-    self.starfish.frame = [self randomStarfishFrame];
+    self.starfish.hidden = YES;
     [self.view addSubview:self.starfish];
     
     //UI Kit Dynamics
@@ -112,18 +119,16 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     self.boundary.translatesReferenceBoundsIntoBoundary = YES;
     
     //add a bit of elasticity to the ball to add bounce
-    UIDynamicItemBehavior* itemBehavior = [[UIDynamicItemBehavior alloc] initWithItems:@[self.ball]];
-    itemBehavior.elasticity = 0.5;
-    [self.animator addBehavior:itemBehavior];
+    self.itemBehavior = [[UIDynamicItemBehavior alloc] initWithItems:@[self.ball]];
+    self.itemBehavior.elasticity = 0.5;
 
     [self.boundary addBoundaryWithIdentifier:kStarfishBoundaryIdentifier
                                      forPath:[self starfishCollisionBoundary]];
     self.boundary.collisionDelegate = self;
-    
-    [self.animator addBehavior:self.gravity];
-    [self.animator addBehavior:self.boundary];
-    
 
+    [self startGame];
+
+    
 }
 
 #pragma mark - CollisionBehavior Methods
@@ -137,21 +142,25 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
             if ([self.starBumpAudioPlayer prepareToPlay]){
                 [self.starBumpAudioPlayer play];
             }
+        } else {
+            NSLog(NSLocalizedString(@"StarfishBump Audio Player is nil",nil));
         }
         
         [self.boundary removeBoundaryWithIdentifier:kStarfishBoundaryIdentifier];
         self.starfish.frame = [self randomStarfishFrame];
         [self.boundary addBoundaryWithIdentifier:kStarfishBoundaryIdentifier
                                          forPath:[self starfishCollisionBoundary]];
+        self.score = self.score + 1;
+        [self updateScoreLabel];
     }
-    else {
+    else { // wall boundrary
         if (self.wallBumpAudioPlayer != nil){
         }
             if ([self.wallBumpAudioPlayer prepareToPlay]){
                 [self.wallBumpAudioPlayer play];
         }
         else {
-            NSLog(@"WallBumpAudioPlayer is nil");
+            NSLog(NSLocalizedString(@"WallBumpAudioPlayer is nil",nil));
         }
     }
 }
@@ -175,7 +184,6 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 
 #pragma mark - Audio Player methods
 
-
 -(AVAudioPlayer*)audioPlayerWithSound:(NSString*)sound;
 {
     NSBundle* bundle = [NSBundle mainBundle];
@@ -191,9 +199,98 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     return player;
 }
 
--(void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag;
+#pragma mark - Countdown Timer
+
+-(void)updateCountdownTimer:(id)sender;
 {
+    self.countdownTime = self.countdownTime - 1;
+    [self updateCountdownLabel];
+    if (self.countdownTime == 0){
+        [self stopGame];
+    }
+}
+
+-(void)updateCountdownLabel;
+{
+    NSUInteger minute = self.countdownTime / 60;
+    NSUInteger second = self.countdownTime % 60;
+    self.countdownLabel.text = [NSString stringWithFormat:@"%02tu:%02tu",minute,second];
+}
+
+-(void)stopGame;
+{
+    [self.timer invalidate];
+    self.timer = nil;
+    self.ball.hidden = YES;
+    self.starfish.hidden = YES;
+    [self.animator removeAllBehaviors];
     
+    dispatch_after(2.0, self.dispatchQueue, ^{
+        [self.backgroundAudioPlayer stop];
+    });
+    
+    UIAlertController* alert =
+        [UIAlertController alertControllerWithTitle:@"Game Ended"
+                                            message:[NSString stringWithFormat:@"Score: %tu",self.score]
+                                     preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* quit = [UIAlertAction actionWithTitle:@"Quit"
+                                                 style:UIAlertActionStyleCancel
+                                               handler:^(UIAlertAction *action) {
+                                                   [self dismissViewControllerAnimated:YES completion:nil];
+                                                   self.startGameButton.hidden = NO;
+                                               }];
+    UIAlertAction* replay = [UIAlertAction actionWithTitle:@"Replay"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:^(UIAlertAction *action) {
+                                                       [self startGame];
+                                                   }];
+                    
+    [alert addAction:quit];
+    [alert addAction:replay];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+-(void)updateScoreLabel;
+{
+    self.scoreLabel.text = [NSString stringWithFormat:@"Score: %tu",self.score];
+}
+
+- (IBAction)startGameButtonPressed:(UIButton *)sender {
+    [self startGame];
+}
+
+-(void)startGame;
+{
+    // set ball and starfish's frame
+    self.ball.center = [self.view center];
+    self.starfish.frame = [self randomStarfishFrame];
+    self.ball.hidden = NO;
+    self.starfish.hidden = NO;
+    self.startGameButton.hidden = YES;
+
+    dispatch_async(self.dispatchQueue, ^{
+        if ([self.backgroundAudioPlayer prepareToPlay]){
+            [self.backgroundAudioPlayer play];
+        }
+    });
+    
+    self.score = 0;
+    
+    //Start a countdown timer
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                  target:self
+                                                selector:@selector(updateCountdownTimer:)
+                                                userInfo:nil
+                                                 repeats:YES];
+    self.countdownTime = 5; //seconds
+    [self updateCountdownLabel];
+    [self updateScoreLabel];
+
+    [self.animator addBehavior:self.gravity];
+    [self.animator addBehavior:self.boundary];
+    [self.animator addBehavior:self.itemBehavior];
+
 }
 
 # pragma mark - Helper functions
