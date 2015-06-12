@@ -15,6 +15,9 @@ static const NSTimeInterval updateInterval = 0.01; //100 Hz
 static const CGFloat acc_deadband_threshold = 0.02;
 static const CGFloat acc_max = 1.0;
 static NSString* const kStarfishBoundaryIdentifier = @"starfish";
+static const NSUInteger kCountdownTime = 20;
+static const CGFloat kCollisionBoundaryRatio = 0.25;
+static const NSUInteger kMinStarfishDisanceRatio = 3;
 
 
 @interface ViewController () <UICollisionBehaviorDelegate, AVAudioPlayerDelegate>
@@ -123,7 +126,7 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
                                                 selector:@selector(updateCountdownTimer:)
                                                 userInfo:nil
                                                  repeats:YES];
-    self.countdownTime = 20; //seconds
+    self.countdownTime = kCountdownTime; //seconds
     [self updateCountdownLabel];
     [self updateScoreLabel];
     
@@ -164,8 +167,8 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 {
     [self.timer invalidate];
     self.timer = nil;
-    //self.ball.hidden = YES;
-    //self.starfish.hidden = YES;
+    self.ball.hidden = YES;
+    self.starfish.hidden = YES;
     [self.animator removeAllBehaviors];
     if ([self.cmmanager isAccelerometerActive]){
         [self.cmmanager stopAccelerometerUpdates];
@@ -236,17 +239,31 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 
 -(CGRect)randomStarfishFrame;
 {
+    // let the starfish center always be at least 3 ball widths away from the current ball position
+    CGFloat ballwidth = CGRectGetWidth(self.ball.frame);
+    CGPoint ballcenter = self.ball.center;
     CGRect frame = self.starfish.frame;
-    CGPoint origin = CGPointMake(arc4random_uniform(self.view.frame.size.width-frame.size.width),
-                                 arc4random_uniform(self.view.frame.size.height-frame.size.height));
-    frame.origin = origin;
+    CGPoint framecenter;
+    
+    do {
+    
+        CGPoint origin = CGPointMake(arc4random_uniform(self.view.frame.size.width-frame.size.width),
+                                   arc4random_uniform(self.view.frame.size.height-frame.size.height));
+        
+        frame.origin = origin;
+        
+        framecenter = CGPointMake(CGRectGetMidX(frame),CGRectGetMidY(frame));
+    
+    } while ( [self distanceBetweenPoint:ballcenter andPoint:framecenter] <
+             kMinStarfishDisanceRatio * ballwidth );
+    
     return frame;
 }
 
 -(UIBezierPath*)starfishCollisionBoundary;
 {
-    CGRect rect = CGRectInset(self.starfish.frame, self.starfish.frame.size.width*0.25,
-                              self.starfish.frame.size.width*0.25);
+    CGRect rect = CGRectInset(self.starfish.frame, self.starfish.frame.size.width*kCollisionBoundaryRatio,
+                              self.starfish.frame.size.width*kCollisionBoundaryRatio);
     return [UIBezierPath bezierPathWithRect:rect];
 }
 
@@ -294,9 +311,18 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 
 
 # pragma mark - Helper functions
+
 -(BOOL)prefersStatusBarHidden;
 {
     return YES;
+}
+
+-(CGFloat)distanceBetweenPoint:(CGPoint)a andPoint:(CGPoint)b
+{
+    CGFloat dx = a.x - b.x;
+    CGFloat dy = a.y - b.y;
+    
+    return sqrt( dx*dx + dy*dy);
 }
 
 @end
