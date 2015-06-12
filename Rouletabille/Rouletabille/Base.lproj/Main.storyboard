@@ -40,18 +40,27 @@
                                     <action selector="startGame:" destination="BYZ-38-t0r" eventType="touchUpInside" id="vMO-tt-AnE"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="3" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jve-6E-sS3">
+                                <rect key="frame" x="265" y="222" width="71" height="156"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="130"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="centerY" secondItem="TpT-ge-rny" secondAttribute="centerY" id="54e-87-i1P"/>
                             <constraint firstItem="nvp-5D-llH" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="GoD-zn-1fM"/>
+                            <constraint firstAttribute="centerY" secondItem="jve-6E-sS3" secondAttribute="centerY" constant="0.5" id="Jdm-Uv-1NK"/>
                             <constraint firstItem="Cep-P0-rcW" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="fg8-W7-LZZ"/>
                             <constraint firstItem="nvp-5D-llH" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="gKy-y0-wYB"/>
                             <constraint firstItem="Cep-P0-rcW" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="gp1-i6-yvE"/>
+                            <constraint firstAttribute="centerX" secondItem="jve-6E-sS3" secondAttribute="centerX" constant="-0.5" id="xTX-bx-3Bb"/>
                             <constraint firstAttribute="centerX" secondItem="TpT-ge-rny" secondAttribute="centerX" constant="-0.5" id="zOR-rH-I8F"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="countdownEndingIndicator" destination="jve-6E-sS3" id="98z-Tp-LAN"/>
                         <outlet property="countdownLabel" destination="nvp-5D-llH" id="Ymc-no-JjO"/>
                         <outlet property="scoreLabel" destination="Cep-P0-rcW" id="VMA-3W-jGm"/>
                         <outlet property="startGameButton" destination="TpT-ge-rny" id="4jB-U0-dGZ"/>

@@ -39,6 +39,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 @property (nonatomic,assign) dispatch_queue_t dispatchQueue;
 @property (nonatomic,strong) UIDynamicItemBehavior* itemBehavior;
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
+@property (weak, nonatomic) IBOutlet UILabel *countdownEndingIndicator;
 @end
 
 @implementation ViewController
@@ -47,6 +48,8 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    self.countdownEndingIndicator.hidden = YES;
     
     //initialize audio players background queue, since may take time to load
     self.dispatchQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
@@ -244,7 +247,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     CGPoint ballcenter = self.ball.center;
     CGRect frame = self.starfish.frame;
     CGPoint framecenter;
-    
+        
     do {
     
         CGPoint origin = CGPointMake(arc4random_uniform(self.view.frame.size.width-frame.size.width),
@@ -291,9 +294,27 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 {
     self.countdownTime = self.countdownTime - 1;
     [self updateCountdownLabel];
+    
+    if (self.countdownTime <= 3 && self.countdownTime >=1){
+        [self countdownEndingIndicatorAnimation:self.countdownTime];
+    }
     if (self.countdownTime == 0){
         [self stopGame];
     }
+}
+
+-(void)countdownEndingIndicatorAnimation:(NSUInteger)time;
+{
+    self.countdownEndingIndicator.text = [NSString stringWithFormat:@"%tu",time];
+    self.countdownEndingIndicator.alpha = 0.8;
+    self.countdownEndingIndicator.hidden = NO;
+    
+    [UIView animateWithDuration:0.7 animations:^{
+        
+        self.countdownEndingIndicator.alpha = 0;
+    } completion:^(BOOL finished) {
+        self.countdownEndingIndicator.hidden = YES;
+    }];
 }
 
 -(void)updateCountdownLabel;
