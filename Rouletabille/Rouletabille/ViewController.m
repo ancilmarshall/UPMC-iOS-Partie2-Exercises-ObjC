@@ -52,7 +52,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.countdownEndingIndicator.hidden = YES;
     self.quitGameButton.enabled = NO;
     self.quitGameButton.tintColor = [UIColor whiteColor];
-    [self resetCountdownLabel];
+    [self resetLabels];
 
     //initialize audio players background queue, since may take time to load
     self.dispatchQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
@@ -175,6 +175,9 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 
 -(void)stopGame;
 {
+    NSUInteger gameScore = self.score; //immediately save the game score
+    self.score = 0;
+    
     [self.timer invalidate];
     self.timer = nil;
     self.ball.hidden = YES;
@@ -189,9 +192,12 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
         [self.backgroundAudioPlayer stop];
     });
     
+    [self resetLabels];
+    [self updateScoreLabel];
+    
     UIAlertController* alert =
     [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game Over", nil)
-                                        message:[NSString stringWithFormat:NSLocalizedString(@"Score: %tu",nil),self.score]
+                                        message:[NSString stringWithFormat:NSLocalizedString(@"Score: %tu",nil),gameScore]
                                  preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction* main = [UIAlertAction actionWithTitle:NSLocalizedString(@"Main Screen",nil)
                                                    style:UIAlertActionStyleCancel
@@ -209,9 +215,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     
     [self presentViewController:alert animated:YES completion:nil];
     
-    self.score = 0;
-    [self resetCountdownLabel];
-    [self updateScoreLabel];
+
 }
 
 - (IBAction)quitGame:(UIButton *)sender;
@@ -355,7 +359,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.countdownTime = self.countdownTime - 1;
     [self updateCountdownLabel];
     
-    if (self.countdownTime <= 3 && self.countdownTime >=1){
+    if (self.countdownTime >= 1 && self.countdownTime <= 3 ){
         [self countdownEndingIndicatorAnimation:self.countdownTime];
     }
     if (self.countdownTime == 0){
@@ -377,22 +381,31 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     }];
 }
 
--(void)resetCountdownLabel;
+-(void)resetLabels;
 {
-    self.countdownLabel.text = @"--:--";
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.countdownLabel.text = @"--:--";
+        self.scoreLabel.text = NSLocalizedString(@"Score: --",nil);
+    });
+    
+
 }
 
 -(void)updateCountdownLabel;
 {
-    NSUInteger minute = self.countdownTime / 60;
-    NSUInteger second = self.countdownTime % 60;
-    self.countdownLabel.text = [NSString stringWithFormat:@"%02tu:%02tu",minute,second];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSUInteger minute = self.countdownTime / 60;
+        NSUInteger second = self.countdownTime % 60;
+        self.countdownLabel.text = [NSString stringWithFormat:@"%02tu:%02tu",minute,second];
+    });
 }
 
 -(void)updateScoreLabel;
 {
-    self.scoreLabel.text =
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.scoreLabel.text =
         [NSString stringWithFormat:NSLocalizedString(@"Score: %tu",@"Game Score Label"),self.score];
+    });
 }
 
 # pragma mark - Helper functions
