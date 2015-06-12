@@ -184,10 +184,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     if ([self.cmmanager isAccelerometerActive]){
         [self.cmmanager stopAccelerometerUpdates];
     }
-    self.score = 0;
-    [self resetCountdownLabel];
-    [self updateScoreLabel];
-    
+
     dispatch_after(5.0, self.dispatchQueue, ^{
         [self.backgroundAudioPlayer stop];
     });
@@ -196,7 +193,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game Over", nil)
                                         message:[NSString stringWithFormat:NSLocalizedString(@"Score: %tu",nil),self.score]
                                  preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction* quit = [UIAlertAction actionWithTitle:NSLocalizedString(@"Main Screen",nil)
+    UIAlertAction* main = [UIAlertAction actionWithTitle:NSLocalizedString(@"Main Screen",nil)
                                                    style:UIAlertActionStyleCancel
                                                  handler:^(UIAlertAction *action) {
                                                      self.startGameButton.hidden = NO;
@@ -207,10 +204,14 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
                                                        [self startGame:nil];
                                                    }];
     
-    [alert addAction:quit];
+    [alert addAction:main];
     [alert addAction:replay];
     
     [self presentViewController:alert animated:YES completion:nil];
+    
+    self.score = 0;
+    [self resetCountdownLabel];
+    [self updateScoreLabel];
 }
 
 - (IBAction)quitGame:(UIButton *)sender;
@@ -219,7 +220,6 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.timer = nil;
     self.quitGameButton.enabled = NO;
     [self.animator removeAllBehaviors];
-    
     
     UIAlertController* alert =
     [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game in Progress",nil)
@@ -253,6 +253,9 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
                                                 userInfo:nil
                                                  repeats:YES];
     
+    [self.boundary addBoundaryWithIdentifier:kStarfishBoundaryIdentifier
+                                     forPath:[self starfishCollisionBoundary]];
+
     [self.animator addBehavior:self.gravity];
     [self.animator addBehavior:self.boundary];
     [self.animator addBehavior:self.itemBehavior];
