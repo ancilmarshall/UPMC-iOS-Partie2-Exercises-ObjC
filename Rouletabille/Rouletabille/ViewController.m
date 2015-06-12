@@ -40,15 +40,14 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 
 @implementation ViewController
 
+#pragma mark - Initialization
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    //initialize audio players background queue. Start background music
-    self.dispatchQueue =
-    dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    
+    //initialize audio players background queue, since may take time to load
+    self.dispatchQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(self.dispatchQueue, ^(void){
-        
         self.backgroundAudioPlayer = [self audioPlayerWithSound:@"midnight-ride-01a"];
         self.wallBumpAudioPlayer = [self audioPlayerWithSound:@"son"];
         self.starBumpAudioPlayer = [self audioPlayerWithSound:@"squeeze-toy-1"];
@@ -57,40 +56,11 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     
     //core motion manager for acceleration data
     self.cmmanager = [[CMMotionManager alloc] init];
-    
-    if (self.cmmanager){
-        if ([self.cmmanager isAccelerometerAvailable]){
-            self.cmmanager.accelerometerUpdateInterval = updateInterval;
-            [self.cmmanager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
-                if (error != nil){
-                    NSLog(NSLocalizedString(@"Error in CMAcceleratorData update", nil));
-                }
-                else {
-                    
-                    CGFloat acc_x = accelerometerData.acceleration.x;
-                    CGFloat acc_y = accelerometerData.acceleration.y;
-                    
-                    CGFloat mag = sqrt( acc_x*acc_x + acc_y*acc_y);
-                    if ( mag < acc_deadband_threshold){
-                        mag = 0.0f;
-                    }
-                    else if ( mag > acc_max ){
-                        mag = acc_max;
-                    }
-                    
-                    // Gravity angle is measured clockwise from +ve X-axis
-                    CGFloat angle = atan2(-acc_y, acc_x);
-                    
-                    self.gravity.magnitude = mag;
-                    self.gravity.angle = angle;
-                }
-            }];
-        }
-        else {
-            NSLog(NSLocalizedString(@"Acclerometer is not available",nil));
-        }
-    } else {
+    if (self.cmmanager == nil){
         NSLog(NSLocalizedString(@"CMMotion Manager unable to be defined",nil));
+    }
+    if (![self.cmmanager isAccelerometerAvailable]){
+        NSLog(NSLocalizedString(@"Acclerometer is not available",nil));
     }
     
     //background view
@@ -99,12 +69,12 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     [self.view addSubview:bg];
     [self.view sendSubviewToBack:bg]; // to move behind labels in the IB storyboard
     
-    //add movable object, centered in the view
+    //add ball object, centered in the view
     self.ball = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bille"]];
     self.ball.hidden = YES;
     [self.view addSubview:self.ball];
     
-    //add starfish target
+    //add starfish target object
     self.starfish = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"etoile-96"]];
     self.starfish.hidden = YES;
     [self.view addSubview:self.starfish];
@@ -122,18 +92,117 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     self.itemBehavior = [[UIDynamicItemBehavior alloc] initWithItems:@[self.ball]];
     self.itemBehavior.elasticity = 0.5;
 
+    self.boundary.collisionDelegate = self;
+    
+}
+
+#pragma mark - Game Controls
+
+- (IBAction)startGame:(UIButton *)sender {
+    
+    // set ball and starfish's frame
+    self.ball.center = [self.view center];
+    self.starfish.frame = [self randomStarfishFrame];
     [self.boundary addBoundaryWithIdentifier:kStarfishBoundaryIdentifier
                                      forPath:[self starfishCollisionBoundary]];
-    self.boundary.collisionDelegate = self;
-
-    [self startGame];
-
     
+    self.ball.hidden = NO;
+    self.starfish.hidden = NO;
+    self.startGameButton.hidden = YES;
+    
+    dispatch_async(self.dispatchQueue, ^{
+        if ([self.backgroundAudioPlayer prepareToPlay]){
+            [self.backgroundAudioPlayer play];
+        }
+    });
+    
+    self.score = 0;
+    //Start a countdown timer
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                  target:self
+                                                selector:@selector(updateCountdownTimer:)
+                                                userInfo:nil
+                                                 repeats:YES];
+    self.countdownTime = 20; //seconds
+    [self updateCountdownLabel];
+    [self updateScoreLabel];
+    
+    [self.animator addBehavior:self.gravity];
+    [self.animator addBehavior:self.boundary];
+    [self.animator addBehavior:self.itemBehavior];
+    
+    if (self.cmmanager){
+        self.cmmanager.accelerometerUpdateInterval = updateInterval;
+        [self.cmmanager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
+            if (error != nil){
+                NSLog(NSLocalizedString(@"Error in CMAcceleratorData update", nil));
+            }
+            else {
+                
+                CGFloat acc_x = accelerometerData.acceleration.x;
+                CGFloat acc_y = accelerometerData.acceleration.y;
+                
+                CGFloat mag = sqrt( acc_x*acc_x + acc_y*acc_y);
+                if ( mag < acc_deadband_threshold){
+                    mag = 0.0f;
+                }
+                else if ( mag > acc_max ){
+                    mag = acc_max;
+                }
+                
+                // Gravity angle is measured clockwise from +ve X-axis
+                CGFloat angle = atan2(-acc_y, acc_x);
+                
+                self.gravity.magnitude = mag;
+                self.gravity.angle = angle;
+            }
+        }];
+    }
+}
+
+-(void)stopGame;
+{
+    [self.timer invalidate];
+    self.timer = nil;
+    //self.ball.hidden = YES;
+    //self.starfish.hidden = YES;
+    [self.animator removeAllBehaviors];
+    if ([self.cmmanager isAccelerometerActive]){
+        [self.cmmanager stopAccelerometerUpdates];
+    }
+    
+    dispatch_after(5.0, self.dispatchQueue, ^{
+        [self.backgroundAudioPlayer stop];
+    });
+    
+    UIAlertController* alert =
+    [UIAlertController alertControllerWithTitle:@"Game Ended"
+                                        message:[NSString stringWithFormat:@"Score: %tu",self.score]
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* quit = [UIAlertAction actionWithTitle:@"Quit"
+                                                   style:UIAlertActionStyleCancel
+                                                 handler:^(UIAlertAction *action) {
+                                                     [self dismissViewControllerAnimated:YES completion:nil];
+                                                     self.startGameButton.hidden = NO;
+                                                 }];
+    UIAlertAction* replay = [UIAlertAction actionWithTitle:@"Replay"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:^(UIAlertAction *action) {
+                                                       [self startGame:nil];
+                                                   }];
+    
+    [alert addAction:quit];
+    [alert addAction:replay];
+    
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 #pragma mark - CollisionBehavior Methods
 
--(void)collisionBehavior:(UICollisionBehavior *)behavior beganContactForItem:(id<UIDynamicItem>)item withBoundaryIdentifier:(NSString*)identifier atPoint:(CGPoint)p
+-(void)collisionBehavior:(UICollisionBehavior *)behavior
+     beganContactForItem:(id<UIDynamicItem>)item
+  withBoundaryIdentifier:(NSString*)identifier
+                 atPoint:(CGPoint)p
 {
 
     if ( [identifier isEqualToString:kStarfishBoundaryIdentifier] ){
@@ -168,8 +237,8 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
 -(CGRect)randomStarfishFrame;
 {
     CGRect frame = self.starfish.frame;
-    CGPoint origin = CGPointMake( arc4random_uniform(self.view.frame.size.width-frame.size.width),
-                                  arc4random_uniform(self.view.frame.size.height-frame.size.height));
+    CGPoint origin = CGPointMake(arc4random_uniform(self.view.frame.size.width-frame.size.width),
+                                 arc4random_uniform(self.view.frame.size.height-frame.size.height));
     frame.origin = origin;
     return frame;
 }
@@ -199,7 +268,7 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     return player;
 }
 
-#pragma mark - Countdown Timer
+#pragma mark - Game Labels
 
 -(void)updateCountdownTimer:(id)sender;
 {
@@ -217,81 +286,12 @@ static NSString* const kStarfishBoundaryIdentifier = @"starfish";
     self.countdownLabel.text = [NSString stringWithFormat:@"%02tu:%02tu",minute,second];
 }
 
--(void)stopGame;
-{
-    [self.timer invalidate];
-    self.timer = nil;
-    self.ball.hidden = YES;
-    self.starfish.hidden = YES;
-    [self.animator removeAllBehaviors];
-    
-    dispatch_after(2.0, self.dispatchQueue, ^{
-        [self.backgroundAudioPlayer stop];
-    });
-    
-    UIAlertController* alert =
-        [UIAlertController alertControllerWithTitle:@"Game Ended"
-                                            message:[NSString stringWithFormat:@"Score: %tu",self.score]
-                                     preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction* quit = [UIAlertAction actionWithTitle:@"Quit"
-                                                 style:UIAlertActionStyleCancel
-                                               handler:^(UIAlertAction *action) {
-                                                   [self dismissViewControllerAnimated:YES completion:nil];
-                                                   self.startGameButton.hidden = NO;
-                                               }];
-    UIAlertAction* replay = [UIAlertAction actionWithTitle:@"Replay"
-                                                     style:UIAlertActionStyleDefault
-                                                   handler:^(UIAlertAction *action) {
-                                                       [self startGame];
-                                                   }];
-                    
-    [alert addAction:quit];
-    [alert addAction:replay];
-    
-    [self presentViewController:alert animated:YES completion:nil];
-}
-
 -(void)updateScoreLabel;
 {
     self.scoreLabel.text = [NSString stringWithFormat:@"Score: %tu",self.score];
 }
 
-- (IBAction)startGameButtonPressed:(UIButton *)sender {
-    [self startGame];
-}
 
--(void)startGame;
-{
-    // set ball and starfish's frame
-    self.ball.center = [self.view center];
-    self.starfish.frame = [self randomStarfishFrame];
-    self.ball.hidden = NO;
-    self.starfish.hidden = NO;
-    self.startGameButton.hidden = YES;
-
-    dispatch_async(self.dispatchQueue, ^{
-        if ([self.backgroundAudioPlayer prepareToPlay]){
-            [self.backgroundAudioPlayer play];
-        }
-    });
-    
-    self.score = 0;
-    
-    //Start a countdown timer
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
-                                                  target:self
-                                                selector:@selector(updateCountdownTimer:)
-                                                userInfo:nil
-                                                 repeats:YES];
-    self.countdownTime = 5; //seconds
-    [self updateCountdownLabel];
-    [self updateScoreLabel];
-
-    [self.animator addBehavior:self.gravity];
-    [self.animator addBehavior:self.boundary];
-    [self.animator addBehavior:self.itemBehavior];
-
-}
 
 # pragma mark - Helper functions
 -(BOOL)prefersStatusBarHidden;
