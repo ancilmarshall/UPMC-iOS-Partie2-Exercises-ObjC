@@ -52,6 +52,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.countdownEndingIndicator.hidden = YES;
     self.quitGameButton.enabled = NO;
     self.quitGameButton.tintColor = [UIColor whiteColor];
+    [self resetCountdownLabel];
 
     //initialize audio players background queue, since may take time to load
     self.dispatchQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
@@ -183,6 +184,9 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     if ([self.cmmanager isAccelerometerActive]){
         [self.cmmanager stopAccelerometerUpdates];
     }
+    self.score = 0;
+    [self resetCountdownLabel];
+    [self updateScoreLabel];
     
     dispatch_after(5.0, self.dispatchQueue, ^{
         [self.backgroundAudioPlayer stop];
@@ -192,7 +196,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game Over", nil)
                                         message:[NSString stringWithFormat:NSLocalizedString(@"Score: %tu",nil),self.score]
                                  preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction* quit = [UIAlertAction actionWithTitle:NSLocalizedString(@"Quit",nil)
+    UIAlertAction* quit = [UIAlertAction actionWithTitle:NSLocalizedString(@"Main Screen",nil)
                                                    style:UIAlertActionStyleCancel
                                                  handler:^(UIAlertAction *action) {
                                                      self.startGameButton.hidden = NO;
@@ -211,7 +215,6 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 
 - (IBAction)quitGame:(UIButton *)sender;
 {
-    //[self saveGameState];
     [self.timer invalidate];
     self.timer = nil;
     self.quitGameButton.enabled = NO;
@@ -219,15 +222,15 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     
     
     UIAlertController* alert =
-    [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Quit Game",nil)
-                                        message:NSLocalizedString(@"Are you sure?",nil)
+    [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game in Progress",nil)
+                                        message:NSLocalizedString(@"Quit Game?",nil)
                                  preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction* no = [UIAlertAction actionWithTitle:NSLocalizedString(@"No", nil)
+    UIAlertAction* no = [UIAlertAction actionWithTitle:NSLocalizedString(@"Resume", nil)
                                                  style:UIAlertActionStyleCancel
                                                handler:^(UIAlertAction *action) {
                                                    [self resumeGame];
                                                }];
-    UIAlertAction* yes = [UIAlertAction actionWithTitle:NSLocalizedString(@"Yes", nil)
+    UIAlertAction* yes = [UIAlertAction actionWithTitle:NSLocalizedString(@"Stop", nil)
                                                    style:UIAlertActionStyleDefault
                                                  handler:^(UIAlertAction *action) {
                                                      self.startGameButton.hidden = NO;
@@ -244,7 +247,6 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 
 -(void)resumeGame;
 {
-    //[self loadGameState];
     self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
                                                   target:self
                                                 selector:@selector(updateCountdownTimer:)
@@ -372,6 +374,11 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     }];
 }
 
+-(void)resetCountdownLabel;
+{
+    self.countdownLabel.text = @"--:--";
+}
+
 -(void)updateCountdownLabel;
 {
     NSUInteger minute = self.countdownTime / 60;
@@ -381,10 +388,9 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 
 -(void)updateScoreLabel;
 {
-    self.scoreLabel.text = [NSString stringWithFormat:@"Score: %tu",self.score];
+    self.scoreLabel.text =
+        [NSString stringWithFormat:NSLocalizedString(@"Score: %tu",@"Game Score Label"),self.score];
 }
-
-
 
 # pragma mark - Helper functions
 
