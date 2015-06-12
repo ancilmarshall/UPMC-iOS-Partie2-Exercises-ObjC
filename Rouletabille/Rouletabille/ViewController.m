@@ -19,7 +19,6 @@ static const NSUInteger kCountdownTime = 20;
 static const CGFloat kCollisionBoundaryRatio = 0.25;
 static const NSUInteger kMinStarfishDisanceRatio = 3;
 
-
 @interface ViewController () <UICollisionBehaviorDelegate, AVAudioPlayerDelegate>
 
 @property (nonatomic,strong) CMMotionManager* cmmanager;
@@ -39,6 +38,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 @property (nonatomic,assign) dispatch_queue_t dispatchQueue;
 @property (nonatomic,strong) UIDynamicItemBehavior* itemBehavior;
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
+@property (weak, nonatomic) IBOutlet UIButton *quitGameButton;
 @property (weak, nonatomic) IBOutlet UILabel *countdownEndingIndicator;
 @end
 
@@ -50,7 +50,9 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     [super viewDidLoad];
     
     self.countdownEndingIndicator.hidden = YES;
-    
+    self.quitGameButton.enabled = NO;
+    self.quitGameButton.tintColor = [UIColor whiteColor];
+
     //initialize audio players background queue, since may take time to load
     self.dispatchQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(self.dispatchQueue, ^(void){
@@ -115,6 +117,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.ball.hidden = NO;
     self.starfish.hidden = NO;
     self.startGameButton.hidden = YES;
+    self.quitGameButton.enabled = YES;
     
     dispatch_async(self.dispatchQueue, ^{
         if ([self.backgroundAudioPlayer prepareToPlay]){
@@ -139,30 +142,33 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     
     if (self.cmmanager){
         self.cmmanager.accelerometerUpdateInterval = updateInterval;
-        [self.cmmanager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
-            if (error != nil){
-                NSLog(NSLocalizedString(@"Error in CMAcceleratorData update", nil));
-            }
-            else {
-                
-                CGFloat acc_x = accelerometerData.acceleration.x;
-                CGFloat acc_y = accelerometerData.acceleration.y;
-                
-                CGFloat mag = sqrt( acc_x*acc_x + acc_y*acc_y);
-                if ( mag < acc_deadband_threshold){
-                    mag = 0.0f;
+        [self.cmmanager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue]
+                                             withHandler:
+         
+            ^(CMAccelerometerData *accelerometerData, NSError *error) {
+                if (error != nil){
+                    NSLog(NSLocalizedString(@"Error in CMAcceleratorData update", nil));
                 }
-                else if ( mag > acc_max ){
-                    mag = acc_max;
+                else {
+                    
+                    CGFloat acc_x = accelerometerData.acceleration.x;
+                    CGFloat acc_y = accelerometerData.acceleration.y;
+                    
+                    CGFloat mag = sqrt( acc_x*acc_x + acc_y*acc_y);
+                    if ( mag < acc_deadband_threshold){
+                        mag = 0.0f;
+                    }
+                    else if ( mag > acc_max ){
+                        mag = acc_max;
+                    }
+                    
+                    // Gravity angle is measured clockwise from +ve X-axis
+                    CGFloat angle = atan2(-acc_y, acc_x);
+                    
+                    self.gravity.magnitude = mag;
+                    self.gravity.angle = angle;
                 }
-                
-                // Gravity angle is measured clockwise from +ve X-axis
-                CGFloat angle = atan2(-acc_y, acc_x);
-                
-                self.gravity.magnitude = mag;
-                self.gravity.angle = angle;
-            }
-        }];
+            }];
     }
 }
 
@@ -172,6 +178,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.timer = nil;
     self.ball.hidden = YES;
     self.starfish.hidden = YES;
+    self.quitGameButton.enabled = NO;
     [self.animator removeAllBehaviors];
     if ([self.cmmanager isAccelerometerActive]){
         [self.cmmanager stopAccelerometerUpdates];
@@ -182,16 +189,15 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     });
     
     UIAlertController* alert =
-    [UIAlertController alertControllerWithTitle:@"Game Ended"
-                                        message:[NSString stringWithFormat:@"Score: %tu",self.score]
+    [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game Over", nil)
+                                        message:[NSString stringWithFormat:NSLocalizedString(@"Score: %tu",nil),self.score]
                                  preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction* quit = [UIAlertAction actionWithTitle:@"Quit"
+    UIAlertAction* quit = [UIAlertAction actionWithTitle:NSLocalizedString(@"Quit",nil)
                                                    style:UIAlertActionStyleCancel
                                                  handler:^(UIAlertAction *action) {
-                                                     [self dismissViewControllerAnimated:YES completion:nil];
                                                      self.startGameButton.hidden = NO;
                                                  }];
-    UIAlertAction* replay = [UIAlertAction actionWithTitle:@"Replay"
+    UIAlertAction* replay = [UIAlertAction actionWithTitle:NSLocalizedString(@"Replay", nil)
                                                      style:UIAlertActionStyleDefault
                                                    handler:^(UIAlertAction *action) {
                                                        [self startGame:nil];
@@ -202,6 +208,55 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     
     [self presentViewController:alert animated:YES completion:nil];
 }
+
+- (IBAction)quitGame:(UIButton *)sender;
+{
+    //[self saveGameState];
+    [self.timer invalidate];
+    self.timer = nil;
+    self.quitGameButton.enabled = NO;
+    [self.animator removeAllBehaviors];
+    
+    
+    UIAlertController* alert =
+    [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Quit Game",nil)
+                                        message:NSLocalizedString(@"Are you sure?",nil)
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* no = [UIAlertAction actionWithTitle:NSLocalizedString(@"No", nil)
+                                                 style:UIAlertActionStyleCancel
+                                               handler:^(UIAlertAction *action) {
+                                                   [self resumeGame];
+                                               }];
+    UIAlertAction* yes = [UIAlertAction actionWithTitle:NSLocalizedString(@"Yes", nil)
+                                                   style:UIAlertActionStyleDefault
+                                                 handler:^(UIAlertAction *action) {
+                                                     self.startGameButton.hidden = NO;
+                                                     [self stopGame];
+                                                 }];
+
+    [alert addAction:no];
+    [alert addAction:yes];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+    
+}
+
+
+-(void)resumeGame;
+{
+    //[self loadGameState];
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                  target:self
+                                                selector:@selector(updateCountdownTimer:)
+                                                userInfo:nil
+                                                 repeats:YES];
+    
+    [self.animator addBehavior:self.gravity];
+    [self.animator addBehavior:self.boundary];
+    [self.animator addBehavior:self.itemBehavior];
+    self.quitGameButton.enabled = YES;
+}
+
 
 #pragma mark - CollisionBehavior Methods
 

@@ -46,12 +46,21 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HhL-FD-0Sw">
+                                <rect key="frame" x="16" y="562" width="30" height="30"/>
+                                <state key="normal" title="Quit"/>
+                                <connections>
+                                    <action selector="quitGame:" destination="BYZ-38-t0r" eventType="touchUpInside" id="rXO-FQ-hc9"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="centerY" secondItem="TpT-ge-rny" secondAttribute="centerY" id="54e-87-i1P"/>
                             <constraint firstItem="nvp-5D-llH" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="GoD-zn-1fM"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="HhL-FD-0Sw" secondAttribute="bottom" constant="8" id="Hfl-GB-xSQ"/>
                             <constraint firstAttribute="centerY" secondItem="jve-6E-sS3" secondAttribute="centerY" constant="0.5" id="Jdm-Uv-1NK"/>
+                            <constraint firstItem="HhL-FD-0Sw" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="dwH-Dd-jBv"/>
                             <constraint firstItem="Cep-P0-rcW" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="fg8-W7-LZZ"/>
                             <constraint firstItem="nvp-5D-llH" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="gKy-y0-wYB"/>
                             <constraint firstItem="Cep-P0-rcW" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="gp1-i6-yvE"/>
@@ -62,6 +71,7 @@
                     <connections>
                         <outlet property="countdownEndingIndicator" destination="jve-6E-sS3" id="98z-Tp-LAN"/>
                         <outlet property="countdownLabel" destination="nvp-5D-llH" id="Ymc-no-JjO"/>
+                        <outlet property="quitGameButton" destination="HhL-FD-0Sw" id="J1D-xX-VRc"/>
                         <outlet property="scoreLabel" destination="Cep-P0-rcW" id="VMA-3W-jGm"/>
                         <outlet property="startGameButton" destination="TpT-ge-rny" id="4jB-U0-dGZ"/>
                     </connections>
