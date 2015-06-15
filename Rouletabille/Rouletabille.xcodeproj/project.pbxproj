@@ -110,6 +110,8 @@
 		1D927CD51B276C45004390F4 /* son-etoile.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "son-etoile.mp3"; sourceTree = "<group>"; };
 		1D927CD61B276C45004390F4 /* son.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = son.mp3; sourceTree = "<group>"; };
 		1D927CD71B276C45004390F4 /* squeeze-toy-1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "squeeze-toy-1.mp3"; sourceTree = "<group>"; };
+		1DAC0BEC1B2B4F6A009BD9E6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
+		1DAC0BED1B2B4F6A009BD9E6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -396,6 +398,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				1D927C981B273B49004390F4 /* Base */,
+				1DAC0BEC1B2B4F6A009BD9E6 /* fr */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -404,6 +407,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				1D927C9D1B273B49004390F4 /* Base */,
+				1DAC0BED1B2B4F6A009BD9E6 /* fr */,
 			);
 			name = LaunchScreen.xib;
 			sourceTree = "<group>";

@@ -1,0 +1,15 @@
+
+/* Class = "UILabel"; text = "Score:0"; ObjectID = "Cep-P0-rcW"; */
+"Cep-P0-rcW.text" = "Score:0";
+
+/* Class = "UIButton"; normalTitle = "Quit"; ObjectID = "HhL-FD-0Sw"; */
+"HhL-FD-0Sw.normalTitle" = "Quit";
+
+/* Class = "UIButton"; normalTitle = "Start"; ObjectID = "TpT-ge-rny"; */
+"TpT-ge-rny.normalTitle" = "Start";
+
+/* Class = "UILabel"; text = "3"; ObjectID = "jve-6E-sS3"; */
+"jve-6E-sS3.text" = "3";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "nvp-5D-llH"; */
+"nvp-5D-llH.text" = "00:00";
