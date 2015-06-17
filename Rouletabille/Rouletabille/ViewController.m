@@ -103,6 +103,7 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
 
     self.boundary.collisionDelegate = self;
     
+    [self startBackgroundAudioPlayer];
 }
 
 #pragma mark - Game Controls
@@ -119,12 +120,6 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
     self.starfish.hidden = NO;
     self.startGameButton.hidden = YES;
     self.quitGameButton.enabled = YES;
-    
-    dispatch_async(self.dispatchQueue, ^{
-        if ([self.backgroundAudioPlayer prepareToPlay]){
-            [self.backgroundAudioPlayer play];
-        }
-    });
     
     self.score = 0;
     //Start a countdown timer
@@ -350,6 +345,28 @@ static const NSUInteger kMinStarfishDisanceRatio = 3;
         player.delegate = self;
     }
     return player;
+}
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag;
+{
+    if (player == self.backgroundAudioPlayer){
+        [self startBackgroundAudioPlayer];
+    }
+}
+
+- (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error;
+{
+    NSLog(@"Error Decoding Audio Player %@, Error %@",player,[error localizedDescription]);
+}
+
+-(void)startBackgroundAudioPlayer;
+{
+    dispatch_async(self.dispatchQueue, ^{
+        if ([self.backgroundAudioPlayer prepareToPlay]){
+            [self.backgroundAudioPlayer play];
+        }
+    });
+
 }
 
 #pragma mark - Game Labels
