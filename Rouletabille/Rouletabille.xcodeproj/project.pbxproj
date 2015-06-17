@@ -49,6 +49,7 @@
 		1D927CF91B276C45004390F4 /* son-etoile.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1D927CD51B276C45004390F4 /* son-etoile.mp3 */; };
 		1D927CFA1B276C45004390F4 /* son.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1D927CD61B276C45004390F4 /* son.mp3 */; };
 		1D927CFB1B276C45004390F4 /* squeeze-toy-1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1D927CD71B276C45004390F4 /* squeeze-toy-1.mp3 */; };
+		1DAC0C831B3153CC009BD9E6 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1DAC0C851B3153CC009BD9E6 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,6 +113,9 @@
 		1D927CD71B276C45004390F4 /* squeeze-toy-1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "squeeze-toy-1.mp3"; sourceTree = "<group>"; };
 		1DAC0BEC1B2B4F6A009BD9E6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
 		1DAC0BED1B2B4F6A009BD9E6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		1DAC0C841B3153CC009BD9E6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1DAC0C861B3153D4009BD9E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1DAC0C871B3153D5009BD9E6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,6 +157,7 @@
 		1D927C8C1B273B49004390F4 /* Rouletabille */ = {
 			isa = PBXGroup;
 			children = (
+				1DAC0C851B3153CC009BD9E6 /* Localizable.strings */,
 				1D927CB31B276C45004390F4 /* Rouletabille_AVResources */,
 				1D927C911B273B49004390F4 /* AppDelegate.h */,
 				1D927C921B273B49004390F4 /* AppDelegate.m */,
@@ -297,6 +302,7 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = 1D927C811B273B49004390F4;
 			productRefGroup = 1D927C8B1B273B49004390F4 /* Products */;
@@ -336,6 +342,7 @@
 				1D927CDF1B276C45004390F4 /* Icon-60@2x.png in Resources */,
 				1D927CEF1B276C45004390F4 /* rouletabille-fond-eau@3x.jpg in Resources */,
 				1D927CEC1B276C45004390F4 /* refresh@3x.png in Resources */,
+				1DAC0C831B3153CC009BD9E6 /* Localizable.strings in Resources */,
 				1D927CF61B276C45004390F4 /* rouletabille-fond-voutes.jpg in Resources */,
 				1D927CF01B276C45004390F4 /* rouletabille-fond-mosaique.jpg in Resources */,
 				1D927CE31B276C45004390F4 /* Icon-Small.png in Resources */,
@@ -410,6 +417,16 @@
 				1DAC0BED1B2B4F6A009BD9E6 /* fr */,
 			);
 			name = LaunchScreen.xib;
+			sourceTree = "<group>";
+		};
+		1DAC0C851B3153CC009BD9E6 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1DAC0C841B3153CC009BD9E6 /* en */,
+				1DAC0C861B3153D4009BD9E6 /* Base */,
+				1DAC0C871B3153D5009BD9E6 /* fr */,
+			);
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

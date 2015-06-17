@@ -1,12 +1,12 @@
 
 /* Class = "UILabel"; text = "Score:0"; ObjectID = "Cep-P0-rcW"; */
-"Cep-P0-rcW.text" = "Score:0";
+"Cep-P0-rcW.text" = "Total:0";
 
 /* Class = "UIButton"; normalTitle = "Quit"; ObjectID = "HhL-FD-0Sw"; */
-"HhL-FD-0Sw.normalTitle" = "Quit";
+"HhL-FD-0Sw.normalTitle" = "Quitter le jeu";
 
 /* Class = "UIButton"; normalTitle = "Start"; ObjectID = "TpT-ge-rny"; */
-"TpT-ge-rny.normalTitle" = "Start";
+"TpT-ge-rny.normalTitle" = "Démarrer";
 
 /* Class = "UILabel"; text = "3"; ObjectID = "jve-6E-sS3"; */
 "jve-6E-sS3.text" = "3";
