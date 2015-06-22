@@ -88,6 +88,7 @@
     NSAssert(self == aNetServiceBrowser.delegate,@"Expected NetServiceBrowser's delegate to be self");
     self.searching = YES;
     
+    NSLog(@"NetServiceBrowserDidStopSearch");
     //Update the UI to reflect that search stopped. Maybe the network indicator
    
 }

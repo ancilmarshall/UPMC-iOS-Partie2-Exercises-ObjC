@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="oeR-az-G84">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="LLU-9B-Cwg">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
     </dependencies>
@@ -19,6 +19,9 @@
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="t9T-Vu-DCy" id="5Iv-Ob-va6">
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
+                                <connections>
+                                    <segue destination="R4Y-ru-G8P" kind="show" id="UAv-KE-1J1"/>
+                                </connections>
                             </tableViewCell>
                         </prototypes>
                         <connections>
@@ -26,8 +29,67 @@
                             <outlet property="delegate" destination="oeR-az-G84" id="tqf-4l-x9v"/>
                         </connections>
                     </tableView>
+                    <navigationItem key="navigationItem" id="1zb-Jk-cKK">
+                        <barButtonItem key="rightBarButtonItem" systemItem="action" id="bn8-fV-Ks2">
+                            <connections>
+                                <action selector="broadcastMessage:" destination="oeR-az-G84" id="g89-FM-Ttz"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nR2-AV-oDL" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1216" y="399"/>
+        </scene>
+        <!--Humeur Picker View Controller-->
+        <scene sceneID="spf-SD-eak">
+            <objects>
+                <viewController id="R4Y-ru-G8P" customClass="HumeurPickerViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="B9b-Sr-8gD"/>
+                        <viewControllerLayoutGuide type="bottom" id="C4B-Gv-kHL"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="Q93-fJ-kOZ">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="11i-kT-Bk0">
+                                <rect key="frame" x="140" y="219" width="320" height="162"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="R4Y-ru-G8P" id="Rub-4L-kwT"/>
+                                    <outlet property="delegate" destination="R4Y-ru-G8P" id="h5F-uD-ORt"/>
+                                </connections>
+                            </pickerView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="centerX" secondItem="11i-kT-Bk0" secondAttribute="centerX" id="A9R-mV-LRL"/>
+                            <constraint firstAttribute="centerY" secondItem="11i-kT-Bk0" secondAttribute="centerY" id="bmD-fP-76a"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="moodPicker" destination="11i-kT-Bk0" id="wle-x1-5uF"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ySf-Q5-9Ud" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1971" y="399"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="3bL-ry-C7b">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="LLU-9B-Cwg" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="eLY-Fi-o8e">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="oeR-az-G84" kind="relationship" relationship="rootViewController" id="VJU-OY-f3i"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="YD0-KM-PIa" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="404" y="399"/>
         </scene>
